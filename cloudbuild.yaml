@@ -1,0 +1,50 @@
+timeout: 7200s
+
+substitutions:
+  _PROJECT_ID: "project-1234"
+  _REPOSITORY: "go-template"
+  _PROJECT: "template"
+  _DEPLOYMENT: "deployment-go-template"
+  _NAMESPACE: "deployment-namespace"
+  _CREDENTIALS: "cluster-credentials"
+  _ZONE: "europe-west4-a"
+  _TAG: "eu.gcr.io/${_PROJECT_ID}/${_REPOSITORY}"
+
+steps:
+  - id: build
+    name: 'gcr.io/cloud-builders/docker'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -xeou pipefail
+        /usr/bin/docker build --tag ${_TAG}:$SHORT_SHA --tag ${_TAG}:latest --build-arg VERSION=$SHORT_SHA PROJECT=${_PROJECT} .
+        /usr/bin/docker push ${_TAG}
+  
+  - id: rollout
+    name: 'gcr.io/cloud-builders/gke-deploy'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -xeou pipefail
+        
+        gcloud container clusters get-credentials "${_CREDENTIALS}" --zone "${_ZONE}"
+        
+        kubectl rollout restart deployment ${_DEPLOYMENT} -n ${_NAMSESPACE}
+        
+  ## Cleans up old images, remove this to keep image history.
+  ## This is just so that GKE wont price more for storing images
+  - id: cleanup
+    name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+      
+        old_images=$(gcloud container images list-tags ${_TAG} --format='get(tags)' | grep -v ";latest")
+        
+        echo "$old_images" | while read -r line; do
+          line=$(echo $line|tr -d '\r')
+          gcloud container images delete ${_TAG}:${line} --quiet
+        done;

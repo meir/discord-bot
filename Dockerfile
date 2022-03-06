@@ -5,8 +5,11 @@ ARG PROJECT="executable"
 WORKDIR /src
 COPY . .
 
+ARG PROJECT="executable"
+ARG VERSION=???
+
 RUN go mod download
-RUN go build -o /src/${PROJECT} /src/app
+RUN go build -o /src/${PROJECT} /src/app/${PROJECT}
 
 #
 

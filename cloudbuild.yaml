@@ -31,7 +31,7 @@ steps:
         
         gcloud container clusters get-credentials "${_CREDENTIALS}" --zone "${_ZONE}"
         
-        kubectl rollout restart deployment ${_DEPLOYMENT} -n ${_NAMSESPACE}
+        kubectl rollout restart deployment ${_DEPLOYMENT} -n ${_NAMESPACE}
         
   ## Cleans up old images, remove this to keep image history.
   ## This is just so that GKE wont price more for storing images

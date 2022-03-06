@@ -5,7 +5,7 @@ substitutions:
   _REPOSITORY: "discord-bot"
   _PROJECT: "discord-bot"
   _DEPLOYMENT: "deployment-discord-bot"
-  _NAMESPACE: "deployment-discord-bot"
+  _NAMESPACE: "discord-bot"
   _CREDENTIALS: "flamingo-master"
   _ZONE: "europe-west4-a"
   _TAG: "eu.gcr.io/${_PROJECT_ID}/${_REPOSITORY}"

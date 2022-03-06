@@ -23,18 +23,18 @@ ARG PROJECT="executable"
 ARG VERSION=???
 
 ENV VERSION=$VERSION
-ENV WEB="/root/website"
+ENV WEB="/app/website"
 
 ENV DEBUG_WEBHOOK=
 ENV DEBUG=false
 
 RUN apk --no-cache add ca-certificates
 
-WORKDIR /root/
+WORKDIR /app/
 COPY --from=go /src/${PROJECT} ./
 COPY --from=go /src/assets ./assets
 COPY --from=go /src/web ./web
 
-RUN chmod +x /root/${PROJECT}
+RUN chmod +x /app/${PROJECT}
 
-CMD /root/${PROJECT}
+CMD /app/${PROJECT}

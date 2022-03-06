@@ -6,7 +6,7 @@ WORKDIR /src
 COPY . .
 
 RUN go mod download
-RUN go build -o /src/${PROJECT} ./src/app
+RUN go build -o /src/${PROJECT} /src/app
 
 #
 

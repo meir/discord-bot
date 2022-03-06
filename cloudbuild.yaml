@@ -18,7 +18,7 @@ steps:
       - -c
       - |
         set -xeou pipefail
-        /usr/bin/docker build --tag ${_TAG}:$SHORT_SHA --tag ${_TAG}:latest --build-arg VERSION=$SHORT_SHA PROJECT=${_PROJECT} .
+        /usr/bin/docker build --tag ${_TAG}:$SHORT_SHA --tag ${_TAG}:latest --build-arg VERSION=$SHORT_SHA --build-arg PROJECT=${_PROJECT} .
         /usr/bin/docker push ${_TAG}
   
   - id: rollout

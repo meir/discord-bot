@@ -13,7 +13,7 @@ RUN go build -o /src/${PROJECT} /src/app/${PROJECT}
 
 #
 
-FROM alpine:latest
+FROM golang:1.17.2-alpine3.14
 
 LABEL image=${PROJECT}
 LABEL maintainer="github.com/meir"
@@ -28,13 +28,14 @@ ENV WEB="/app/website"
 ENV DEBUG_WEBHOOK=
 ENV DEBUG=false
 
-RUN apk --no-cache add ca-certificates
+RUN apk add --no-cache mysql-client
+
+RUN mkdir /app
 
 WORKDIR /app/
-COPY --from=go /src/${PROJECT} ./
-COPY --from=go /src/assets ./assets
-COPY --from=go /src/web ./web
+COPY --from=go /src/${PROJECT} /app/program
+COPY --from=go /src/assets /app/assets
+COPY --from=go /src/web /app/web
+RUN chmod +x /app/program
 
-RUN chmod +x /app/${PROJECT}
-
-CMD /app/${PROJECT}
+CMD /app/program

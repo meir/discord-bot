@@ -1,12 +1,12 @@
 timeout: 7200s
 
 substitutions:
-  _PROJECT_ID: "project-1234"
-  _REPOSITORY: "go-template"
-  _PROJECT: "template"
-  _DEPLOYMENT: "deployment-go-template"
-  _NAMESPACE: "deployment-namespace"
-  _CREDENTIALS: "cluster-credentials"
+  _PROJECT_ID: "flamingo-302814"
+  _REPOSITORY: "discord-bot"
+  _PROJECT: "discord-bot"
+  _DEPLOYMENT: "deployment-discord-bot"
+  _NAMESPACE: "deployment-discord-bot"
+  _CREDENTIALS: "flamingo-master"
   _ZONE: "europe-west4-a"
   _TAG: "eu.gcr.io/${_PROJECT_ID}/${_REPOSITORY}"
 

@@ -22,13 +22,17 @@ func verification_message(session *discordgo.Session, interaction *discordgo.Int
 		"guild_id": interaction.GuildID,
 	})
 
+	var message *discordgo.Message
 	var guild structs.Guild
 	err := guildDocument.Decode(&guild)
+	if err == mongo.ErrNoDocuments {
+		goto sendMessage
+	}
 	if err != nil {
 		panic(err)
 	}
 
-	message, err := session.ChannelMessage(guild.VerificationMessage.ChannelID, guild.VerificationMessage.MessageID)
+	message, err = session.ChannelMessage(guild.VerificationMessage.ChannelID, guild.VerificationMessage.MessageID)
 	if err != nil {
 		goto sendMessage
 	}

@@ -34,12 +34,12 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 		},
 		{
 			ID:   interaction.GuildID, // > The @everyone role has the same ID as the guild it belongs to.
-			Type: discordgo.PermissionOverwriteTypeMember,
+			Type: discordgo.PermissionOverwriteTypeRole,
 			Deny: discordgo.PermissionViewChannel,
 		},
 		{
 			ID:   interaction.GuildID, // ^^^
-			Type: discordgo.PermissionOverwriteTypeMember,
+			Type: discordgo.PermissionOverwriteTypeRole,
 			Deny: discordgo.PermissionSendMessages,
 		},
 	}

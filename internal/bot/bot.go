@@ -19,6 +19,13 @@ type DiscordBot struct {
 func NewDiscordBot() *DiscordBot {
 	session, err := discordgo.New(fmt.Sprintf("Bot %v", os.Getenv("DISCORD_TOKEN")))
 
+	session.UpdateStatusComplex(discordgo.UpdateStatusData{
+		IdleSince:  nil,
+		Activities: []*discordgo.Activity{},
+		AFK:        false,
+		Status:     fmt.Sprintf("Running version #%v", os.Getenv("VERSION")),
+	})
+
 	if err != nil {
 		panic(err)
 	}

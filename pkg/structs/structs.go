@@ -3,6 +3,7 @@ package structs
 type Guild struct {
 	GuildID             string  `bson:"guild_id"`
 	VerifiedRole        string  `bson:"verified_role"`
+	ModRole             string  `bson:"moderator_role"`
 	VerificationMessage Message `bson:"verification_message"`
 }
 

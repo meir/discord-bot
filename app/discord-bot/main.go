@@ -1,14 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 
-	"github.com/bwmarrin/discordgo"
 	"github.com/meir/discord-bot/internal/bot"
 	"github.com/meir/discord-bot/internal/commands"
+	"github.com/meir/discord-bot/internal/events"
 )
 
 func main() {
@@ -21,14 +20,8 @@ func main() {
 	}
 	defer b.Session.Close()
 
-	b.Session.UpdateStatusComplex(discordgo.UpdateStatusData{
-		IdleSince:  nil,
-		Activities: []*discordgo.Activity{},
-		AFK:        false,
-		Status:     fmt.Sprintf("Running version #%v", os.Getenv("VERSION")),
-	})
-
 	commands.RegisterCommands(b.Session)
+	events.Register(b.Session)
 	defer commands.RemoveCommands(b.Session)
 
 	stop := make(chan os.Signal, 1)

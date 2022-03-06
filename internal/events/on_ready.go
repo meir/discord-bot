@@ -8,10 +8,5 @@ import (
 )
 
 func OnReady(session *discordgo.Session, ready *discordgo.Ready) {
-	session.UpdateStatusComplex(discordgo.UpdateStatusData{
-		IdleSince:  nil,
-		Activities: []*discordgo.Activity{},
-		AFK:        false,
-		Status:     fmt.Sprintf("Running version #%v", os.Getenv("VERSION")),
-	})
+	session.UpdateGameStatus(0, fmt.Sprintf("version #%v", os.Getenv("VERSION")))
 }

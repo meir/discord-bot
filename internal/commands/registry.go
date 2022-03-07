@@ -1,10 +1,8 @@
 package commands
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/bwmarrin/discordgo"
+	"github.com/meir/discord-bot/internal/logging"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -58,7 +56,7 @@ func Handler(database *mongo.Database) interface{} {
 }
 
 func RegisterCommands(s *discordgo.Session) {
-	println("Registering commands...")
+	logging.Println("Registering commands...")
 	for _, g := range s.State.Guilds {
 		for k, c := range commands {
 			id, err := s.ApplicationCommandCreate(s.State.User.ID, g.ID, &discordgo.ApplicationCommand{
@@ -67,10 +65,9 @@ func RegisterCommands(s *discordgo.Session) {
 				Options:     c.Arguments,
 			})
 			if err != nil {
-				log.Panicf("Cannot create '%v' command: %v", c.Name, err)
+				logging.Warn("Cannot create '%v' command: %v", c.Name, err)
 			}
 			registered[c.Name] = id
-			println(fmt.Sprintf("Registered command '%v'.", c.Name))
 		}
 	}
 }

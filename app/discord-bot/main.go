@@ -1,13 +1,14 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"os/signal"
 
 	"github.com/meir/discord-bot/internal/bot"
 	"github.com/meir/discord-bot/internal/commands"
 	"github.com/meir/discord-bot/internal/events"
+	"github.com/meir/discord-bot/internal/logging"
 )
 
 func main() {
@@ -16,7 +17,7 @@ func main() {
 
 	err := b.Session.Open()
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 	defer b.Session.Close()
 
@@ -26,6 +27,6 @@ func main() {
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
-	log.Println("Press Ctrl+C to exit")
+	logging.Println(fmt.Sprintf("Started version #%v", os.Getenv("VERSION")))
 	<-stop
 }

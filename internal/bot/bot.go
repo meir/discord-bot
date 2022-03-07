@@ -7,6 +7,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/meir/discord-bot/internal/commands"
+	"github.com/meir/discord-bot/internal/logging"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -20,7 +21,7 @@ func NewDiscordBot() *DiscordBot {
 	session, err := discordgo.New(fmt.Sprintf("Bot %v", os.Getenv("DISCORD_TOKEN")))
 
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	opts := options.Client()
@@ -29,12 +30,12 @@ func NewDiscordBot() *DiscordBot {
 
 	var database *mongo.Client = nil
 	if database, err = mongo.Connect(context.Background(), opts); err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	err = database.Ping(context.Background(), nil)
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	return &DiscordBot{

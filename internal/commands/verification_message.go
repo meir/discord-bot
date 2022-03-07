@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/meir/discord-bot/internal/logging"
 	"github.com/meir/discord-bot/pkg/structs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -29,7 +30,7 @@ func verification_message(session *discordgo.Session, interaction *discordgo.Int
 		goto sendMessage
 	}
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	message, err = session.ChannelMessage(guild.VerificationMessage.ChannelID, guild.VerificationMessage.MessageID)
@@ -58,12 +59,12 @@ sendMessage:
 	})
 
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	channel, err := session.Channel(msg.ChannelID)
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	opts := options.Update().SetUpsert(true)

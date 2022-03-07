@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/meir/discord-bot/internal/logging"
 	"github.com/meir/discord-bot/internal/utils"
 	"github.com/meir/discord-bot/pkg/structs"
 	"go.mongodb.org/mongo-driver/bson"
@@ -40,7 +41,7 @@ func verification_accept(session *discordgo.Session, interaction *discordgo.Inte
 	var channel structs.Channel
 	err := channelDocument.Decode(&channel)
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	guildDocument := guilds.FindOne(context.Background(), bson.M{
@@ -50,7 +51,7 @@ func verification_accept(session *discordgo.Session, interaction *discordgo.Inte
 	var guild structs.Guild
 	err = guildDocument.Decode(&guild)
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	var userId string

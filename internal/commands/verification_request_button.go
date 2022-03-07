@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/meir/discord-bot/internal/logging"
 	"github.com/meir/discord-bot/pkg/structs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -64,12 +65,12 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 		goto CreateChannel
 	}
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	ch, err = session.Channel(channel.ChannelID)
 	if err != nil {
-		// panic(err)
+		// logging.Fatal(err)
 		goto CreateChannel
 	}
 
@@ -89,7 +90,7 @@ CreateChannel:
 
 	err = guildDocument.Decode(&guild)
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	ch, err = session.GuildChannelCreateComplex(interaction.GuildID, discordgo.GuildChannelCreateData{
@@ -119,7 +120,7 @@ CreateChannel:
 
 	//session.GuildChannelCreate(interaction.GuildID, fmt.Sprintf("verification-%v", interaction.Member.User.ID), discordgo.ChannelTypeGuildText)
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{

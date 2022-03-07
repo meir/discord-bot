@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/meir/discord-bot/internal/logging"
 	"github.com/meir/discord-bot/internal/utils"
 	"github.com/meir/discord-bot/pkg/structs"
 	"go.mongodb.org/mongo-driver/bson"
@@ -46,7 +47,7 @@ func verification_deny(session *discordgo.Session, interaction *discordgo.Intera
 	var channel structs.Channel
 	err := channelDocument.Decode(&channel)
 	if err != nil {
-		panic(err)
+		logging.Fatal(err)
 	}
 
 	var userId string

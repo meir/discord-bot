@@ -33,16 +33,11 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 			Type:  discordgo.PermissionOverwriteTypeMember,
 			Allow: discordgo.PermissionSendMessages,
 		},
-		// {
-		// 	ID:   interaction.GuildID, // > The @everyone role has the same ID as the guild it belongs to.
-		// 	Type: discordgo.PermissionOverwriteTypeRole,
-		// 	Deny: discordgo.PermissionViewChannel,
-		// },
-		// {
-		// 	ID:   interaction.GuildID, // ^^^
-		// 	Type: discordgo.PermissionOverwriteTypeRole,
-		// 	Deny: discordgo.PermissionSendMessages,
-		// },
+		{
+			ID:   interaction.GuildID, // > The @everyone role has the same ID as the guild it belongs to.
+			Type: discordgo.PermissionOverwriteTypeRole,
+			Deny: discordgo.PermissionAll,
+		},
 	}
 
 	opts := options.Update().SetUpsert(true)

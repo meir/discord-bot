@@ -22,28 +22,36 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 	channels := db.Collection(os.Getenv("COLLECTION_CHANNELS"))
 	col := db.Collection(os.Getenv("COLLECTION_SERVERDATA"))
 
+	var guildDocument *mongo.SingleResult
+	var guild structs.Guild
+	guildDocument = col.FindOne(context.Background(), bson.M{
+		"guild_id": interaction.GuildID,
+	})
+
+	err := guildDocument.Decode(&guild)
+	if err != nil {
+		logging.Fatal(err)
+	}
+
 	overwrites := []*discordgo.PermissionOverwrite{
 		{
 			ID:    interaction.Member.User.ID,
 			Type:  discordgo.PermissionOverwriteTypeMember,
-			Allow: discordgo.PermissionViewChannel,
-		},
-		{
-			ID:    interaction.Member.User.ID,
-			Type:  discordgo.PermissionOverwriteTypeMember,
-			Allow: discordgo.PermissionSendMessages,
+			Allow: discordgo.PermissionSendMessages | discordgo.PermissionViewChannel,
 		},
 		{
 			ID:   interaction.GuildID, // > The @everyone role has the same ID as the guild it belongs to.
 			Type: discordgo.PermissionOverwriteTypeRole,
 			Deny: discordgo.PermissionAll,
 		},
+		{
+			ID:    guild.ModRole,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Allow: discordgo.PermissionSendMessages | discordgo.PermissionViewChannel,
+		},
 	}
 
 	opts := options.Update().SetUpsert(true)
-
-	var guildDocument *mongo.SingleResult
-	var guild structs.Guild
 
 	channelDocument := channels.FindOne(context.Background(), bson.M{
 		"guild_id": interaction.GuildID,
@@ -55,7 +63,7 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 
 	var channel structs.Channel
 	var ch *discordgo.Channel
-	err := channelDocument.Decode(&channel)
+	err = channelDocument.Decode(&channel)
 	if err == mongo.ErrNoDocuments {
 		goto CreateChannel
 	}
@@ -79,14 +87,6 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 	goto EditChannel
 CreateChannel:
 	// Create verification channel
-	guildDocument = col.FindOne(context.Background(), bson.M{
-		"guild_id": interaction.GuildID,
-	})
-
-	err = guildDocument.Decode(&guild)
-	if err != nil {
-		logging.Fatal(err)
-	}
 
 	ch, err = session.GuildChannelCreateComplex(interaction.GuildID, discordgo.GuildChannelCreateData{
 		Name:                 fmt.Sprintf("verification-%v", interaction.Member.User.ID),

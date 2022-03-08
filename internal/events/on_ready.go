@@ -8,7 +8,7 @@ import (
 	"github.com/meir/discord-bot/internal/logging"
 )
 
-func OnReady(session *discordgo.Session, ready *discordgo.Ready) {
+func OnReady(session *discordgo.Session, ready *discordgo.Event) {
 	activity := &discordgo.Activity{
 		Name: fmt.Sprintf("Running version %v", os.Getenv("VERSION")),
 		Type: discordgo.ActivityTypeCustom,

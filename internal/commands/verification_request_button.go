@@ -126,6 +126,8 @@ CreateChannel:
 		},
 	})
 
+	session.ChannelMessageSend(ch.ID, fmt.Sprintf("<@&%s>", guild.ModRole))
+
 EditChannel:
 	session.ChannelEditComplex(ch.ID, &discordgo.ChannelEdit{
 		PermissionOverwrites: overwrites,

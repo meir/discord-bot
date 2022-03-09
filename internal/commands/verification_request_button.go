@@ -49,7 +49,8 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 		},
 	})
 	if err == mongo.ErrNoDocuments {
-		ch, err := session.GuildChannelCreateComplex(interaction.GuildID, discordgo.GuildChannelCreateData{
+		var ch *discordgo.Channel
+		ch, err = session.GuildChannelCreateComplex(interaction.GuildID, discordgo.GuildChannelCreateData{
 			Name:                 fmt.Sprintf("verification-%v", interaction.Member.User.ID),
 			Type:                 discordgo.ChannelTypeGuildText,
 			Topic:                "You can explain here why you should be allowed into the server! Good luck :)",

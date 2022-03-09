@@ -37,6 +37,10 @@ func quote(session *discordgo.Session, interaction *discordgo.InteractionCreate,
 	}
 
 	count, err := query.QuoteCount(guild.GuildID)
+	if err == mongo.ErrNoDocuments {
+		count = 0
+		err = nil
+	}
 	if err != nil {
 		logging.Warn(err)
 		return

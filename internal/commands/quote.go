@@ -30,39 +30,33 @@ func init() {
 func quote(session *discordgo.Session, interaction *discordgo.InteractionCreate, db *mongo.Database) {
 	query := structs.NewQuery(session, interaction, db)
 
-	guild, err := query.Guild(interaction.GuildID)
-	if err != nil {
-		logging.Warn(err)
-		return
-	}
-
-	count, err := query.QuoteCount(guild.GuildID)
+	count, err := query.QuoteCount(interaction.GuildID)
 	if err == mongo.ErrNoDocuments {
 		count = 0
 		err = nil
 	}
 	if err != nil {
-		logging.Warn(err)
+		logging.Warn("couldnt find quote count", err)
 		return
 	}
 
-	quote := query.NewQuote(guild.GuildID, count)
+	quote := query.NewQuote(interaction.GuildID, count)
 	quote.Message = interaction.ApplicationCommandData().Options[0].StringValue()
 	quote.User = interaction.ApplicationCommandData().Options[1].UserValue(session).ID
 	if quote.Update() != nil {
-		logging.Warn(err)
+		logging.Warn("couldnt update quote", err)
 		return
 	}
 
 	channel, err := query.ChannelByFilter(bson.M{
-		"guild_id": guild.GuildID,
+		"guild_id": interaction.GuildID,
 		"metadata": map[string]string{
 			"type": string(structs.QUOTES_CHANNEL),
 		},
 	})
 
 	if err != nil {
-		logging.Warn(err)
+		logging.Warn("couldnt find quote channel", err)
 		return
 	}
 	session.ChannelMessageSend(channel.ChannelID, fmt.Sprintf("\"%v\" - <@%v>", quote.Message, quote.User))

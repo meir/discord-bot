@@ -1,16 +1,13 @@
 package commands
 
 import (
-	"context"
 	"fmt"
-	"os"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/meir/discord-bot/internal/logging"
 	"github.com/meir/discord-bot/pkg/structs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
@@ -18,19 +15,12 @@ func init() {
 }
 
 func verification_request_button(session *discordgo.Session, interaction *discordgo.InteractionCreate, db *mongo.Database) {
-	// Check if person already has an open verification channel
-	channels := db.Collection(os.Getenv("COLLECTION_CHANNELS"))
-	col := db.Collection(os.Getenv("COLLECTION_SERVERDATA"))
+	query := structs.NewQuery(session, interaction, db)
 
-	var guildDocument *mongo.SingleResult
-	var guild structs.Guild
-	guildDocument = col.FindOne(context.Background(), bson.M{
-		"guild_id": interaction.GuildID,
-	})
-
-	err := guildDocument.Decode(&guild)
+	guild, err := query.Guild(interaction.GuildID)
 	if err != nil {
-		logging.Fatal(err)
+		logging.Warn(err)
+		return
 	}
 
 	overwrites := []*discordgo.PermissionOverwrite{
@@ -51,85 +41,70 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 		},
 	}
 
-	opts := options.Update().SetUpsert(true)
-
-	channelDocument := channels.FindOne(context.Background(), bson.M{
+	channel, err := query.ChannelByFilter(bson.M{
 		"guild_id": interaction.GuildID,
 		"metadata": bson.M{
 			"type": structs.VERIFICATION_CHANNEL,
 			"user": interaction.Member.User.ID,
 		},
 	})
-
-	var channel structs.Channel
-	var ch *discordgo.Channel
-	err = channelDocument.Decode(&channel)
 	if err == mongo.ErrNoDocuments {
-		goto CreateChannel
+		ch, err := session.GuildChannelCreateComplex(interaction.GuildID, discordgo.GuildChannelCreateData{
+			Name:                 fmt.Sprintf("verification-%v", interaction.Member.User.ID),
+			Type:                 discordgo.ChannelTypeGuildText,
+			Topic:                "You can explain here why you should be allowed into the server! Good luck :)",
+			PermissionOverwrites: overwrites,
+			ParentID:             guild.VerificationMessage.ParentID,
+		})
+		if err != nil {
+			logging.Warn(err)
+			return
+		}
+		channel = query.NewChannel(interaction.GuildID, ch.ID)
+		channel.Metadata = map[string]string{
+			"type": string(structs.VERIFICATION_CHANNEL),
+			"user": interaction.Member.User.ID,
+		}
+		err = channel.Update()
 	}
 	if err != nil {
-		logging.Fatal(err)
+		logging.Warn(err)
+		return
 	}
 
-	ch, err = session.Channel(channel.ChannelID)
+	ch, err := session.Channel(channel.ChannelID)
 	if err != nil {
-		// logging.Fatal(err)
-		goto CreateChannel
+		ch, err = session.GuildChannelCreateComplex(interaction.GuildID, discordgo.GuildChannelCreateData{
+			Name:                 fmt.Sprintf("verification-%v", interaction.Member.User.ID),
+			Type:                 discordgo.ChannelTypeGuildText,
+			Topic:                "You can explain here why you should be allowed into the server! Good luck :)",
+			PermissionOverwrites: overwrites,
+			ParentID:             guild.VerificationMessage.ParentID,
+		})
+		if err != nil {
+			logging.Warn(err)
+			return
+		}
+		channel.ChannelID = ch.ID
+		err := channel.Update()
+		if err != nil {
+			logging.Warn(err)
+			return
+		}
+		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   1 << 6,
+				Content: fmt.Sprintf("Your verification channel has been created: %v", ch.Mention()),
+			},
+		})
+		return
 	}
-
 	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags:   1 << 6,
 			Content: fmt.Sprintf("You already have an open verification channel: %v", ch.Mention()),
 		},
-	})
-	goto EditChannel
-CreateChannel:
-	// Create verification channel
-
-	ch, err = session.GuildChannelCreateComplex(interaction.GuildID, discordgo.GuildChannelCreateData{
-		Name:                 fmt.Sprintf("verification-%v", interaction.Member.User.ID),
-		Type:                 discordgo.ChannelTypeGuildText,
-		Topic:                "You can explain here why you should be allowed into the server! Good luck :)",
-		PermissionOverwrites: overwrites,
-		ParentID:             guild.VerificationMessage.ParentID,
-	})
-
-	channels.UpdateOne(context.Background(), bson.M{
-		"guild_id": ch.GuildID,
-		"metadata": bson.M{
-			"type": string(structs.VERIFICATION_CHANNEL),
-			"user": interaction.Member.User.ID,
-		},
-	}, bson.M{
-		"$set": structs.Channel{
-			GuildID:   ch.GuildID,
-			ChannelID: ch.ID,
-			Metadata: map[string]string{
-				"type": string(structs.VERIFICATION_CHANNEL),
-				"user": interaction.Member.User.ID,
-			},
-		},
-	}, opts)
-
-	//session.GuildChannelCreate(interaction.GuildID, fmt.Sprintf("verification-%v", interaction.Member.User.ID), discordgo.ChannelTypeGuildText)
-	if err != nil {
-		logging.Fatal(err)
-	}
-
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags:   1 << 6,
-			Content: fmt.Sprintf("Your verification channel has been created: %v", ch.Mention()),
-		},
-	})
-
-	session.ChannelMessageSend(ch.ID, fmt.Sprintf("<@&%s>", guild.ModRole))
-
-EditChannel:
-	session.ChannelEditComplex(ch.ID, &discordgo.ChannelEdit{
-		PermissionOverwrites: overwrites,
 	})
 }

@@ -1,15 +1,12 @@
 package commands
 
 import (
-	"context"
 	"fmt"
-	"os"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/meir/discord-bot/internal/logging"
 	"github.com/meir/discord-bot/internal/utils"
 	"github.com/meir/discord-bot/pkg/structs"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -36,18 +33,12 @@ func verification_deny(session *discordgo.Session, interaction *discordgo.Intera
 		return
 	}
 
-	channels := db.Collection(os.Getenv("COLLECTION_CHANNELS"))
+	query := structs.NewQuery(session, interaction, db)
 
-	// channel := interaction.ChannelID
-	channelDocument := channels.FindOne(context.Background(), bson.M{
-		"guild_id":   interaction.GuildID,
-		"channel_id": interaction.ChannelID,
-	})
-
-	var channel structs.Channel
-	err := channelDocument.Decode(&channel)
+	channel, err := query.Channel(interaction.ChannelID)
 	if err != nil {
-		logging.Fatal(err)
+		logging.Warn(err)
+		return
 	}
 
 	var userId string
@@ -55,8 +46,8 @@ func verification_deny(session *discordgo.Session, interaction *discordgo.Intera
 		userId = channel.Metadata["user"]
 	}
 
+	channel.Delete()
 	session.ChannelDelete(channel.ChannelID)
-	channels.DeleteOne(context.Background(), channel)
 
 	var reason string
 	if len(interaction.ApplicationCommandData().Options) > 0 {

@@ -1,15 +1,13 @@
 package commands
 
 import (
-	"context"
-	"os"
+	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/meir/discord-bot/internal/logging"
+	"github.com/meir/discord-bot/internal/utils"
 	"github.com/meir/discord-bot/pkg/structs"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
@@ -17,29 +15,28 @@ func init() {
 }
 
 func verification_message(session *discordgo.Session, interaction *discordgo.InteractionCreate, db *mongo.Database) {
-	col := db.Collection(os.Getenv("COLLECTION_SERVERDATA"))
+	if !utils.IsModerator(session, interaction, db) {
+		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   1 << 6,
+				Content: fmt.Sprintf("You don't have permission to use this command!"),
+			},
+		})
+		return
+	}
 
-	guildDocument := col.FindOne(context.Background(), bson.M{
-		"guild_id": interaction.GuildID,
-	})
-
-	var message *discordgo.Message
-	var guild structs.Guild
-	err := guildDocument.Decode(&guild)
+	query := structs.NewQuery(session, interaction, db)
+	guild, err := query.Guild(interaction.GuildID)
 	if err == mongo.ErrNoDocuments {
-		goto sendMessage
-	}
-	if err != nil {
-		logging.Fatal(err)
+		guild = query.NewGuild(interaction.GuildID)
+	} else {
+		message, err := session.ChannelMessage(guild.VerificationMessage.ChannelID, guild.VerificationMessage.MessageID)
+		if err == nil {
+			session.ChannelMessageDelete(message.ChannelID, message.ID)
+		}
 	}
 
-	message, err = session.ChannelMessage(guild.VerificationMessage.ChannelID, guild.VerificationMessage.MessageID)
-	if err != nil {
-		goto sendMessage
-	}
-	session.ChannelMessageDelete(message.ChannelID, message.ID)
-
-sendMessage:
 	msg, err := session.ChannelMessageSendComplex(interaction.ChannelID, &discordgo.MessageSend{
 		Embed: &discordgo.MessageEmbed{
 			Title:       "Server Verification",
@@ -57,28 +54,28 @@ sendMessage:
 			},
 		},
 	})
-
 	if err != nil {
-		logging.Fatal(err)
+		logging.Warn(err)
+		return
 	}
 
 	channel, err := session.Channel(msg.ChannelID)
 	if err != nil {
-		logging.Fatal(err)
+		logging.Warn(err)
+		return
 	}
 
-	opts := options.Update().SetUpsert(true)
-	col.UpdateOne(context.Background(), bson.M{
-		"guild_id": interaction.GuildID,
-	}, bson.M{
-		"$set": bson.M{
-			"verification_message": bson.M{
-				"channel_id": msg.ChannelID,
-				"message_id": msg.ID,
-				"parent_id":  channel.ParentID,
-			},
-		},
-	}, opts)
+	guild.VerificationMessage = structs.Message{
+		MessageID: msg.ID,
+		ChannelID: channel.ID,
+		ParentID:  channel.ParentID,
+	}
+
+	err = guild.Update()
+	if err != nil {
+		logging.Warn(err)
+		return
+	}
 
 	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

@@ -1,15 +1,12 @@
 package commands
 
 import (
-	"context"
 	"fmt"
-	"os"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/meir/discord-bot/internal/logging"
 	"github.com/meir/discord-bot/internal/utils"
 	"github.com/meir/discord-bot/pkg/structs"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -29,29 +26,18 @@ func verification_accept(session *discordgo.Session, interaction *discordgo.Inte
 		return
 	}
 
-	channels := db.Collection(os.Getenv("COLLECTION_CHANNELS"))
-	guilds := db.Collection(os.Getenv("COLLECTION_SERVERDATA"))
+	query := structs.NewQuery(session, interaction, db)
 
-	// channel := interaction.ChannelID
-	channelDocument := channels.FindOne(context.Background(), bson.M{
-		"guild_id":   interaction.GuildID,
-		"channel_id": interaction.ChannelID,
-	})
-
-	var channel structs.Channel
-	err := channelDocument.Decode(&channel)
+	guild, err := query.Guild(interaction.GuildID)
 	if err != nil {
-		logging.Fatal(err)
+		logging.Warn(err)
+		return
 	}
 
-	guildDocument := guilds.FindOne(context.Background(), bson.M{
-		"guild_id": interaction.GuildID,
-	})
-
-	var guild structs.Guild
-	err = guildDocument.Decode(&guild)
+	channel, err := query.Channel(interaction.ChannelID)
 	if err != nil {
-		logging.Fatal(err)
+		logging.Warn(err)
+		return
 	}
 
 	var userId string
@@ -59,7 +45,7 @@ func verification_accept(session *discordgo.Session, interaction *discordgo.Inte
 		userId = channel.Metadata["user"]
 	}
 
-	channels.DeleteOne(context.Background(), channel)
+	channel.Delete()
 	session.GuildMemberRoleAdd(interaction.GuildID, userId, guild.VerifiedRole)
 	session.ChannelDelete(channel.ChannelID)
 }

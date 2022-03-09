@@ -1,14 +1,12 @@
 package commands
 
 import (
-	"context"
 	"fmt"
-	"os"
 
 	"github.com/bwmarrin/discordgo"
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/meir/discord-bot/internal/logging"
+	"github.com/meir/discord-bot/pkg/structs"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
@@ -23,18 +21,30 @@ func init() {
 }
 
 func verify_role(session *discordgo.Session, interaction *discordgo.InteractionCreate, db *mongo.Database) {
-	col := db.Collection(os.Getenv("COLLECTION_SERVERDATA"))
-	opts := options.Update().SetUpsert(true)
-
+	if g, err := session.Guild(interaction.GuildID); err != nil || g.OwnerID != interaction.User.ID {
+		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   1 << 6,
+				Content: "You have no permission for this command",
+			},
+		})
+		return
+	}
 	role := interaction.ApplicationCommandData().Options[0].RoleValue(session, interaction.GuildID)
 
-	col.UpdateOne(context.Background(), bson.M{
-		"guild_id": interaction.GuildID,
-	}, bson.M{
-		"$set": bson.M{
-			"verified_role": role.ID,
-		},
-	}, opts)
+	guild, err := structs.NewQuery(session, interaction, db).Guild(interaction.GuildID)
+	if err != nil {
+		logging.Warn(err)
+		return
+	}
+
+	guild.VerifiedRole = role.ID
+	err = guild.Update()
+	if err != nil {
+		logging.Warn(err)
+		return
+	}
 
 	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

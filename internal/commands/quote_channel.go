@@ -44,6 +44,10 @@ func quote_channel(session *discordgo.Session, interaction *discordgo.Interactio
 		return
 	}
 
+	channel.Metadata = map[string]string{
+		"type": string(structs.QUOTES_CHANNEL),
+	}
+	channel.ChannelID = interaction.ChannelID
 	err = channel.Update()
 	if err != nil {
 		logging.Warn(err)

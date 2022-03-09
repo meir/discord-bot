@@ -31,8 +31,8 @@ func quote_channel(session *discordgo.Session, interaction *discordgo.Interactio
 
 	channel, err := query.ChannelByFilter(bson.M{
 		"guild_id": interaction.GuildID,
-		"metadata": bson.M{
-			"type": structs.QUOTES_CHANNEL,
+		"metadata": map[string]string{
+			"type": string(structs.QUOTES_CHANNEL),
 		},
 	})
 	if err == mongo.ErrNoDocuments {

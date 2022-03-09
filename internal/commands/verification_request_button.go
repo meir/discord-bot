@@ -43,7 +43,7 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 
 	channel, err := query.ChannelByFilter(bson.M{
 		"guild_id": interaction.GuildID,
-		"metadata": map[string]string{
+		"metadata": bson.M{
 			"type": string(structs.VERIFICATION_CHANNEL),
 			"user": interaction.Member.User.ID,
 		},

@@ -97,12 +97,12 @@ const (
 )
 
 type Quote struct {
-	*Query `json:"_", bson:"_"`
+	*Query `json:"-", bson:"-"`
 
-	Number  int64
-	Message string
-	User    string
-	GuildID string
+	Number  int64  `bson:"number"`
+	Message string `bson:"message"`
+	User    string `bson:"user_id"`
+	GuildID string `bson:"guild_id"`
 }
 
 func (q *Quote) Update() error {

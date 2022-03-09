@@ -50,7 +50,7 @@ func quote(session *discordgo.Session, interaction *discordgo.InteractionCreate,
 
 	channel, err := query.ChannelByFilter(bson.M{
 		"guild_id": interaction.GuildID,
-		"metadata": map[string]string{
+		"metadata": bson.M{
 			"type": string(structs.QUOTES_CHANNEL),
 		},
 	})

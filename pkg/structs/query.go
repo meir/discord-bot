@@ -54,7 +54,7 @@ func (q *Query) GuildByFilter(filter bson.M) (*Guild, error) {
 }
 
 func (q *Query) NewChannel(guildId string, id string) *Channel {
-	c := &Channel{GuildID: id, ChannelID: id}
+	c := &Channel{GuildID: guildId, ChannelID: id}
 	c.Query = q
 	return c
 }

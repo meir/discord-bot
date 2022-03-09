@@ -67,15 +67,34 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 			"user": interaction.Member.User.ID,
 		}
 		err = channel.Update()
+		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   1 << 6,
+				Content: fmt.Sprintf("Your verification channel has been created: %v", ch.Mention()),
+			},
+		})
+		return
 	}
 	if err != nil {
 		logging.Warn("Error after trying to find channel or update", err)
 		return
 	}
 
-	ch, err := session.Channel(channel.ChannelID)
+	channelList, err := session.GuildChannels(interaction.GuildID)
 	if err != nil {
-		ch, err = session.GuildChannelCreateComplex(interaction.GuildID, discordgo.GuildChannelCreateData{
+		logging.Warn(err)
+		return
+	}
+	exists := false
+	for _, v := range channelList {
+		if v.ID == channel.ChannelID {
+			exists = true
+		}
+	}
+
+	if !exists {
+		ch, err := session.GuildChannelCreateComplex(interaction.GuildID, discordgo.GuildChannelCreateData{
 			Name:                 fmt.Sprintf("verification-%v", interaction.Member.User.ID),
 			Type:                 discordgo.ChannelTypeGuildText,
 			Topic:                "You can explain here why you should be allowed into the server! Good luck :)",
@@ -87,7 +106,7 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 			return
 		}
 		channel.ChannelID = ch.ID
-		err := channel.Update()
+		err = channel.Update()
 		if err != nil {
 			logging.Warn("failed to update channel model after channel fallback", err)
 			return
@@ -105,7 +124,7 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags:   1 << 6,
-			Content: fmt.Sprintf("You already have an open verification channel: %v", ch.Mention()),
+			Content: fmt.Sprintf("You already have an open verification channel: <@%v>", channel.Metadata["user"]),
 		},
 	})
 }

@@ -57,7 +57,7 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 			ParentID:             guild.VerificationMessage.ParentID,
 		})
 		if err != nil {
-			logging.Warn(err)
+			logging.Warn("failed to create channel", err)
 			return
 		}
 		channel = query.NewChannel(interaction.GuildID, ch.ID)
@@ -68,7 +68,7 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 		err = channel.Update()
 	}
 	if err != nil {
-		logging.Warn(err)
+		logging.Warn("Error after trying to find channel or update", err)
 		return
 	}
 
@@ -82,13 +82,13 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 			ParentID:             guild.VerificationMessage.ParentID,
 		})
 		if err != nil {
-			logging.Warn(err)
+			logging.Warn("failed while creating channel from model", err)
 			return
 		}
 		channel.ChannelID = ch.ID
 		err := channel.Update()
 		if err != nil {
-			logging.Warn(err)
+			logging.Warn("failed to update channel model after channel fallback", err)
 			return
 		}
 		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{

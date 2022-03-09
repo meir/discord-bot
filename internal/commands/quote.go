@@ -59,5 +59,16 @@ func quote(session *discordgo.Session, interaction *discordgo.InteractionCreate,
 		logging.Warn("couldnt find quote channel", err)
 		return
 	}
+
+	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "Command ran succesfully",
+		},
+	})
+	err = session.InteractionResponseDelete(session.State.User.ID, interaction.Interaction)
+	if err != nil {
+		logging.Warn(err)
+	}
 	session.ChannelMessageSend(channel.ChannelID, fmt.Sprintf("\"%v\" - <@%v>", quote.Message, quote.User))
 }

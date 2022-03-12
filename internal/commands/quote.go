@@ -70,5 +70,5 @@ func quote(session *discordgo.Session, interaction *discordgo.InteractionCreate,
 	if err != nil {
 		logging.Warn(err)
 	}
-	session.ChannelMessageSend(channel.ChannelID, fmt.Sprintf("\"%v\" - <@%v>", quote.Message, quote.User))
+	session.ChannelMessageSend(channel.ChannelID, fmt.Sprintf("#%v \"%v\" - <@%v>", quote.Number, quote.Message, quote.User))
 }

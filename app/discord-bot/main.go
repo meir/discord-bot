@@ -12,6 +12,14 @@ import (
 )
 
 func main() {
+	defer func() {
+		if err := recover(); err != nil {
+			logging.Warn(err)
+			return
+		}
+		logging.Println("Shutting down.")
+	}()
+
 	b := bot.NewDiscordBot()
 	b.RegisterEvents()
 

@@ -17,13 +17,7 @@ func init() {
 
 func quote_channel(session *discordgo.Session, interaction *discordgo.InteractionCreate, db *mongo.Database) {
 	if !utils.IsModerator(session, interaction, db) {
-		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Flags:   1 << 6,
-				Content: fmt.Sprintf("You don't have permission to use this command!"),
-			},
-		})
+		utils.HiddenResponse(session, interaction, fmt.Sprintf("You don't have permission to use this command!"))
 		return
 	}
 
@@ -54,11 +48,5 @@ func quote_channel(session *discordgo.Session, interaction *discordgo.Interactio
 		return
 	}
 
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags:   1 << 6,
-			Content: fmt.Sprintf("This channel has been saved as the quotes channel."),
-		},
-	})
+	utils.HiddenResponse(session, interaction, fmt.Sprintf("This channel has been saved as the quotes channel."))
 }

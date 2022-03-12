@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/bwmarrin/discordgo"
-	"github.com/meir/discord-bot/internal/logging"
+	"github.com/meir/discord-bot/internal/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -24,14 +24,5 @@ func say(session *discordgo.Session, interaction *discordgo.InteractionCreate, d
 
 	session.ChannelMessageSend(interaction.ChannelID, interaction.ApplicationCommandData().Options[0].StringValue())
 
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: "Command ran succesfully",
-		},
-	})
-	err := session.InteractionResponseDelete(session.State.User.ID, interaction.Interaction)
-	if err != nil {
-		logging.Warn(err)
-	}
+	utils.NoResponse(session, interaction)
 }

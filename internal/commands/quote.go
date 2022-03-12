@@ -5,6 +5,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/meir/discord-bot/internal/logging"
+	"github.com/meir/discord-bot/internal/utils"
 	"github.com/meir/discord-bot/pkg/structs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -60,15 +61,6 @@ func quote(session *discordgo.Session, interaction *discordgo.InteractionCreate,
 		return
 	}
 
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: "Command ran succesfully",
-		},
-	})
-	err = session.InteractionResponseDelete(session.State.User.ID, interaction.Interaction)
-	if err != nil {
-		logging.Warn(err)
-	}
+	utils.NoResponse(session, interaction)
 	session.ChannelMessageSend(channel.ChannelID, fmt.Sprintf("#%v \"%v\" - <@%v>", quote.Number, quote.Message, quote.User))
 }

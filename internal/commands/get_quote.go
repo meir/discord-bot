@@ -47,5 +47,10 @@ func get_quote(session *discordgo.Session, interaction *discordgo.InteractionCre
 		return
 	}
 
-	session.ChannelMessageSend(interaction.ChannelID, fmt.Sprintf("\"%v\" - <@%v>", quote.Message, quote.User))
+	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: fmt.Sprintf("\"%v\" - <@%v>", quote.Message, quote.User),
+		},
+	})
 }

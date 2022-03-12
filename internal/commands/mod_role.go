@@ -5,6 +5,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/meir/discord-bot/internal/logging"
+	"github.com/meir/discord-bot/internal/utils"
 	"github.com/meir/discord-bot/pkg/structs"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -22,13 +23,7 @@ func init() {
 
 func mod_role(session *discordgo.Session, interaction *discordgo.InteractionCreate, db *mongo.Database) {
 	if g, err := session.Guild(interaction.GuildID); err != nil || g.OwnerID != interaction.User.ID {
-		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Flags:   1 << 6,
-				Content: "You have no permission for this command",
-			},
-		})
+		utils.HiddenResponse(session, interaction, "You have no permission for this command")
 		return
 	}
 	role := interaction.ApplicationCommandData().Options[0].RoleValue(session, interaction.GuildID)
@@ -46,11 +41,5 @@ func mod_role(session *discordgo.Session, interaction *discordgo.InteractionCrea
 		return
 	}
 
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags:   1 << 6,
-			Content: fmt.Sprintf("The moderator role is now set to %v.", role.Mention()),
-		},
-	})
+	utils.HiddenResponse(session, interaction, fmt.Sprintf("The moderator role is now set to %v.", role.Mention()))
 }

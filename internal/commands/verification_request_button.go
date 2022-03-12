@@ -5,6 +5,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/meir/discord-bot/internal/logging"
+	"github.com/meir/discord-bot/internal/utils"
 	"github.com/meir/discord-bot/pkg/structs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -105,23 +106,11 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 				return
 			}
 
-			session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Flags:   1 << 6,
-					Content: fmt.Sprintf("Your verification channel has been created: %v", ch.Mention()),
-				},
-			})
+			utils.HiddenResponse(session, interaction, fmt.Sprintf("Your verification channel has been created: %v", ch.Mention()))
 			return
 		}
 
-		session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Flags:   1 << 6,
-				Content: fmt.Sprintf("You already have an open verification channel: <@%v>", channel.Metadata["user"]),
-			},
-		})
+		utils.HiddenResponse(session, interaction, fmt.Sprintf("You already have an open verification channel: <@%v>", channel.ChannelID))
 		return
 	}
 
@@ -148,11 +137,5 @@ func verification_request_button(session *discordgo.Session, interaction *discor
 		return
 	}
 
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags:   1 << 6,
-			Content: fmt.Sprintf("Your verification channel has been created: %v", ch.Mention()),
-		},
-	})
+	utils.HiddenResponse(session, interaction, fmt.Sprintf("Your verification channel has been created: %v", ch.Mention()))
 }

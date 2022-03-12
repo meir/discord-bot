@@ -14,7 +14,7 @@ import (
 func init() {
 	appendCommand("Get Quote", "get-quote", "Gets a quote in the quote channel", []*discordgo.ApplicationCommandOption{
 		{
-			Type:        discordgo.ApplicationCommandOptionString,
+			Type:        discordgo.ApplicationCommandOptionInteger,
 			Name:        "quote-id",
 			Description: "Get a specific quote or leave empty for a random one.",
 			Required:    false,

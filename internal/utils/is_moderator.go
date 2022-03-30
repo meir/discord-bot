@@ -29,3 +29,23 @@ func IsModerator(session *discordgo.Session, interaction *discordgo.InteractionC
 	}
 	return false
 }
+
+func IsVerified(session *discordgo.Session, interaction *discordgo.InteractionCreate, db *mongo.Database) bool {
+	servers := db.Collection(os.Getenv("COLLECTION_SERVERDATA"))
+	serverDocument := servers.FindOne(context.Background(), bson.M{
+		"guild_id": interaction.GuildID,
+	})
+
+	var server structs.Guild
+	err := serverDocument.Decode(&server)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, v := range interaction.Member.Roles {
+		if v == server.VerifiedRole {
+			return true
+		}
+	}
+	return false
+}

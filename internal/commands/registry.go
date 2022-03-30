@@ -3,6 +3,7 @@ package commands
 import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/meir/discord-bot/internal/logging"
+	"github.com/meir/discord-bot/internal/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -40,6 +41,10 @@ func appendComponent(t discordgo.ComponentType, id string, e Executor) {
 
 func Handler(database *mongo.Database) interface{} {
 	return func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if !utils.IsVerified(s, i, database) {
+			return
+		}
+
 		switch i.Type {
 		case discordgo.InteractionApplicationCommand:
 			if h, ok := commands[i.ApplicationCommandData().Name]; ok {

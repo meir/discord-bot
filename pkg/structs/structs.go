@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -121,4 +122,14 @@ func (q *Quote) Update() error {
 		"$set": q,
 	}, opts)
 	return err
+}
+
+type Reminder struct {
+	*Query `json:"-" bson: "-"`
+
+	Interval    string
+	Repeating   bool
+	Next        time.Time
+	UserId      string
+	Description string
 }

@@ -129,5 +129,3 @@ func (q *Query) QuoteCount(guildID string) (int64, error) {
 		"guild_id": guildID,
 	})
 }
-
-func (q *Query) NewReminder()
